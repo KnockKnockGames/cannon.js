@@ -504,6 +504,7 @@ Narrowphase.prototype.sphereTrimesh = function (
     var v2 = sphereTrimesh_v2;
     var relpos = sphereTrimesh_relpos;
     var triangles = sphereTrimesh_triangles;
+    var maxY = localSphereAABB.upperBound.y;
 
     // Convert sphere position to local in the trimesh
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
@@ -525,7 +526,7 @@ Narrowphase.prototype.sphereTrimesh = function (
     //for (var i = 0; i < trimeshShape.indices.length / 3; i++) triangles.push(i); // All
 
     // Vertices
-    var v = sphereTrimesh_v;
+   /* var v = sphereTrimesh_v;
     var radiusSquared = sphereShape.radius * sphereShape.radius;
     for(var i=0; i<triangles.length; i++){
         for (var j = 0; j < 3; j++) {
@@ -619,7 +620,7 @@ Narrowphase.prototype.sphereTrimesh = function (
                 }
             }
         }
-    }
+    }*/
 
     // Triangle faces
     var va = sphereTrimesh_va;
@@ -628,6 +629,11 @@ Narrowphase.prototype.sphereTrimesh = function (
     var normal = sphereTrimesh_normal;
     for(var i=0, N = triangles.length; i !== N; i++){
         trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
+
+        if(va.y > maxY && vb.y > maxY && vc.y > maxY) {
+            continue;
+        }
+
         trimeshShape.getNormal(triangles[i], normal);
         localSpherePos.vsub(va, tmp);
         var dist = tmp.dot(normal);
