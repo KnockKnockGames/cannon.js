@@ -462,6 +462,7 @@ Narrowphase.prototype.sphereTrimesh = function (
     var v2 = sphereTrimesh_v2;
     var relpos = sphereTrimesh_relpos;
     var triangles = sphereTrimesh_triangles;
+    var maxY = localSphereAABB.upperBound.y;
 
     // Convert sphere position to local in the trimesh
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
@@ -480,15 +481,22 @@ Narrowphase.prototype.sphereTrimesh = function (
     );
 
     trimeshShape.getTrianglesInAABB(localSphereAABB, triangles);
+   // console.log("time to get triangles", Date.now() - start)
+    //console.log(triangles.length)
     //for (var i = 0; i < trimeshShape.indices.length / 3; i++) triangles.push(i); // All
 
     // Vertices
+    /*
     var v = sphereTrimesh_v;
     var radiusSquared = sphereShape.radius * sphereShape.radius;
     for(var i=0; i<triangles.length; i++){
         for (var j = 0; j < 3; j++) {
 
             trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], v);
+
+            if(v.y > maxY) {
+                continue;
+            }
 
             // Check vertex overlap in sphere
             v.vsub(localSpherePos, relpos);
@@ -519,16 +527,19 @@ Narrowphase.prototype.sphereTrimesh = function (
                 this.createFrictionEquationsFromContact(r, this.frictionResult);
             }
         }
-    }
+    }*/
 
     // Check all edges
-    for(var i=0; i<triangles.length; i++){
+   /* for(var i=0; i<triangles.length; i++){
         for (var j = 0; j < 3; j++) {
 
             trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], edgeVertexA);
             trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + ((j+1)%3)], edgeVertexB);
             edgeVertexB.vsub(edgeVertexA, edgeVector);
 
+            if(edgeVertexA.y > maxY && edgeVertexB.y > maxY) {
+                continue;
+            }
             // Project sphere position to the edge
             localSpherePos.vsub(edgeVertexB, tmp);
             var positionAlongEdgeB = tmp.dot(edgeVector);
@@ -568,7 +579,7 @@ Narrowphase.prototype.sphereTrimesh = function (
                 }
             }
         }
-    }
+    }*/
 
     // Triangle faces
     var va = sphereTrimesh_va;
@@ -577,6 +588,9 @@ Narrowphase.prototype.sphereTrimesh = function (
     var normal = sphereTrimesh_normal;
     for(var i=0, N = triangles.length; i !== N; i++){
         trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
+        if(va.y > maxY && vb.y > maxY && vc.y > maxY) {
+            continue;
+        }
         trimeshShape.getNormal(triangles[i], normal);
         localSpherePos.vsub(va, tmp);
         var dist = tmp.dot(normal);
@@ -604,6 +618,7 @@ Narrowphase.prototype.sphereTrimesh = function (
     }
 
     triangles.length = 0;
+
 };
 
 var point_on_plane_to_sphere = new Vec3();
